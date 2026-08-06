@@ -41,7 +41,6 @@ exports.createCourse = async (req, res) => {
       !price ||
       !tag.length ||
       !thumbnail ||
-      !category ||
       !instructions.length
     ) {
       return res.status(400).json({
@@ -64,13 +63,16 @@ exports.createCourse = async (req, res) => {
       })
     }
 
-    // Check if the tag given is valid
-    const categoryDetails = await Category.findById(category)
-    if (!categoryDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "Category Details Not Found",
-      })
+    // Check if the category given is valid (if provided)
+    let categoryDetails = null
+    if (category) {
+      categoryDetails = await Category.findById(category)
+      if (!categoryDetails) {
+        return res.status(404).json({
+          success: false,
+          message: "Category Details Not Found",
+        })
+      }
     }
     // Upload the Thumbnail to Cloudinary
     const thumbnailImage = await uploadImageToCloudinary(
@@ -86,7 +88,7 @@ exports.createCourse = async (req, res) => {
       whatYouWillLearn: whatYouWillLearn,
       price,
       tag,
-      category: categoryDetails._id,
+      category: categoryDetails ? categoryDetails._id : null,
       thumbnail: thumbnailImage.secure_url,
       status: status,
       instructions,
@@ -104,17 +106,19 @@ exports.createCourse = async (req, res) => {
       },
       { new: true }
     )
-    // Add the new course to the Categories
-    const categoryDetails2 = await Category.findByIdAndUpdate(
-      { _id: category },
-      {
-        $push: {
-          courses: newCourse._id,
+    // Add the new course to the Categories (if category is provided)
+    if (categoryDetails) {
+      const categoryDetails2 = await Category.findByIdAndUpdate(
+        { _id: category },
+        {
+          $push: {
+            courses: newCourse._id,
+          },
         },
-      },
-      { new: true }
-    )
-    console.log("HEREEEEEEEE", categoryDetails2)
+        { new: true }
+      )
+      console.log("HEREEEEEEEE", categoryDetails2)
+    }
     // Return the new course and a success message
     res.status(200).json({
       success: true,
@@ -451,7 +455,7 @@ exports.deleteCourse = async (req, res) => {
     }
 
     // Unenroll students from the course
-    const studentsEnrolled = course.studentsEnroled
+    const studentsEnrolled = course.studentsEnrolled || course.studentsEnroled || []
     for (const studentId of studentsEnrolled) {
       await User.findByIdAndUpdate(studentId, {
         $pull: { courses: courseId },

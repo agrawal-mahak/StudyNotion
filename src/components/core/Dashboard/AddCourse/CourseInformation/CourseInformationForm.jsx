@@ -68,7 +68,8 @@ export default function CourseInformationForm() {
       currentValues.coursePrice !== course.price ||
       currentValues.courseTags.toString() !== course.tag.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
-      currentValues.courseCategory._id !== course.category._id ||
+      (currentValues.courseCategory?._id || currentValues.courseCategory) !==
+        (course.category?._id || course.category) ||
       currentValues.courseRequirements.toString() !==
         course.instructions.toString() ||
       currentValues.courseImage !== course.thumbnail
@@ -107,8 +108,13 @@ export default function CourseInformationForm() {
         if (currentValues.courseBenefits !== course.whatYouWillLearn) {
           formData.append("whatYouWillLearn", data.courseBenefits)
         }
-        if (currentValues.courseCategory._id !== course.category._id) {
-          formData.append("category", data.courseCategory)
+        if (
+          (currentValues.courseCategory?._id || currentValues.courseCategory) !==
+          (course.category?._id || course.category)
+        ) {
+          if (data.courseCategory) {
+            formData.append("category", data.courseCategory)
+          }
         }
         if (
           currentValues.courseRequirements.toString() !==
@@ -142,7 +148,9 @@ export default function CourseInformationForm() {
     formData.append("price", data.coursePrice)
     formData.append("tag", JSON.stringify(data.courseTags))
     formData.append("whatYouWillLearn", data.courseBenefits)
-    formData.append("category", data.courseCategory)
+    if (data.courseCategory) {
+      formData.append("category", data.courseCategory)
+    }
     formData.append("status", COURSE_STATUS.DRAFT)
     formData.append("instructions", JSON.stringify(data.courseRequirements))
     formData.append("thumbnailImage", data.courseImage)
@@ -223,16 +231,16 @@ export default function CourseInformationForm() {
       {/* Course Category */}
       <div className="flex flex-col space-y-2">
         <label className="text-sm text-richblack-5" htmlFor="courseCategory">
-          Course Category <sup className="text-pink-200">*</sup>
+          Course Category
         </label>
         <select
-          {...register("courseCategory", { required: true })}
+          {...register("courseCategory")}
           defaultValue=""
           id="courseCategory"
           className="form-style w-full"
         >
-          <option value="" disabled>
-            Choose a Category
+          <option value="">
+            Choose a Category (Optional)
           </option>
           {!loading &&
             courseCategories?.map((category, indx) => (
@@ -241,11 +249,6 @@ export default function CourseInformationForm() {
               </option>
             ))}
         </select>
-        {errors.courseCategory && (
-          <span className="ml-2 text-xs tracking-wide text-pink-200">
-            Course Category is required
-          </span>
-        )}
       </div>
       {/* Course Tags */}
       <ChipInput

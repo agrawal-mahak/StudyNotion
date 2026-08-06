@@ -35,7 +35,8 @@ exports.capturePayment = async (req, res) => {
 
       // Check if the user is already enrolled in the course
       const uid = new mongoose.Types.ObjectId(userId)
-      if (course.studentsEnroled.includes(uid)) {
+      const studentsList = course.studentsEnrolled || course.studentsEnroled || []
+      if (studentsList.includes(uid)) {
         return res
           .status(200)
           .json({ success: false, message: "Student is already Enrolled" })
@@ -151,7 +152,7 @@ const enrollStudents = async (courses, userId, res) => {
       // Find the course and enroll the student in it
       const enrolledCourse = await Course.findOneAndUpdate(
         { _id: courseId },
-        { $push: { studentsEnroled: userId } },
+        { $push: { studentsEnrolled: userId, studentsEnroled: userId } },
         { new: true }
       )
 

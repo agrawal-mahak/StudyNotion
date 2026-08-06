@@ -21,6 +21,7 @@ exports.signup = async (req, res) => {
       confirmPassword,
       accountType,
       contactNumber,
+      adminSecretKey,
       otp,
     } = req.body
 
@@ -53,6 +54,18 @@ exports.signup = async (req, res) => {
         message:
           "Password and Confirm Password do not match. Please try again.",
       })
+    }
+
+    // Check if Admin Secret Key is valid when signing up as Admin
+    if (accountType === "Admin") {
+      const validAdminKey = (process.env.ADMIN_SECRET_KEY || "AdminSecret@123").replace(/['"\\]/g, "").trim()
+      const receivedKey = (adminSecretKey || "").replace(/['"\\]/g, "").trim()
+      if (!receivedKey || receivedKey !== validAdminKey) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Admin Passcode/Secret Key. You are not authorized to create an Admin account.",
+        })
+      }
     }
 
     // Check if user already exists

@@ -30,6 +30,7 @@ function VerifyEmail() {
       email,
       password,
       confirmPassword,
+      adminSecretKey,
     } = signupData;
 
     dispatch(
@@ -41,7 +42,8 @@ function VerifyEmail() {
         password,
         confirmPassword,
         otp,
-        navigate
+        navigate,
+        adminSecretKey
       )
     );
   };

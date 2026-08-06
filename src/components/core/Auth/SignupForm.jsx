@@ -22,12 +22,13 @@ function SignupForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    adminSecretKey: "",
   })
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const { firstName, lastName, email, password, confirmPassword } = formData
+  const { firstName, lastName, email, password, confirmPassword, adminSecretKey } = formData
 
   // Handle input fields, when some value changes
   const handleOnChange = (e) => {
@@ -45,8 +46,17 @@ function SignupForm() {
       toast.error("Passwords Do Not Match")
       return
     }
+
+    const cleanedAdminSecretKey = adminSecretKey ? adminSecretKey.replace(/['"\\]/g, "").trim() : ""
+
+    if (accountType === ACCOUNT_TYPE.ADMIN && !cleanedAdminSecretKey) {
+      toast.error("Admin Secret Key is required to create an Admin account")
+      return
+    }
+
     const signupData = {
       ...formData,
+      adminSecretKey: cleanedAdminSecretKey,
       accountType,
     }
 
@@ -63,6 +73,7 @@ function SignupForm() {
       email: "",
       password: "",
       confirmPassword: "",
+      adminSecretKey: "",
     })
     setAccountType(ACCOUNT_TYPE.STUDENT)
   }
@@ -78,6 +89,11 @@ function SignupForm() {
       id: 2,
       tabName: "Instructor",
       type: ACCOUNT_TYPE.INSTRUCTOR,
+    },
+    {
+      id: 3,
+      tabName: "Admin",
+      type: ACCOUNT_TYPE.ADMIN,
     },
   ]
 
@@ -196,6 +212,25 @@ function SignupForm() {
             </span>
           </label>
         </div>
+        {accountType === ACCOUNT_TYPE.ADMIN && (
+          <label className="w-full">
+            <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
+              Admin Secret Key <sup className="text-pink-200">*</sup>
+            </p>
+            <input
+              required
+              type="password"
+              name="adminSecretKey"
+              value={adminSecretKey}
+              onChange={handleOnChange}
+              placeholder="Enter Admin Passcode / Security Key"
+              style={{
+                boxShadow: "inset 0px -1px 0px rgba(255, 255, 255, 0.18)",
+              }}
+              className="w-full rounded-[0.5rem] bg-richblack-800 p-[12px] text-richblack-5"
+            />
+          </label>
+        )}
         <button
           type="submit"
           className="mt-6 rounded-[8px] bg-yellow-50 py-[8px] px-[12px] font-medium text-richblack-900"

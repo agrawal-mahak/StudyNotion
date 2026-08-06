@@ -50,10 +50,11 @@ export function signUp(
   password,
   confirmPassword,
   otp,
-  navigate
+  navigate,
+  adminSecretKey
 ) {
   return async (dispatch) => {
-    console.log("data",accountType,firstName,lastName,email,password,confirmPassword,otp,)
+    console.log("data",accountType,firstName,lastName,email,password,confirmPassword,otp,adminSecretKey)
     const toastId = toast.loading("Loading...")
     dispatch(setLoading(true))
     try {
@@ -65,6 +66,7 @@ export function signUp(
         password,
         confirmPassword,
         otp,
+        adminSecretKey,
       })
 
       console.log("SIGNUP API RESPONSE............", response)

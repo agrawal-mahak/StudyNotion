@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast"
 import { updateCompletedLectures } from "../../slices/viewCourseSlice"
 // import { setLoading } from "../../slices/profileSlice";
 import { apiConnector } from "../apiconnector"
-import { courseEndpoints } from "../apis"
+import { courseEndpoints, categories } from "../apis"
 
 const {
   COURSE_DETAILS_API,
@@ -385,4 +385,26 @@ export const createRating = async (data, token) => {
   }
   toast.dismiss(toastId)
   return success
+}
+
+// create a new category (Admin)
+export const createCategory = async (data, token) => {
+  let result = null
+  const toastId = toast.loading("Creating Category...")
+  try {
+    const response = await apiConnector("POST", categories.CREATE_CATEGORY_API, data, {
+      Authorization: `Bearer ${token}`,
+    })
+    console.log("CREATE CATEGORY API RESPONSE............", response)
+    if (!response?.data?.success) {
+      throw new Error("Could Not Create Category")
+    }
+    toast.success("Category Created Successfully")
+    result = response?.data
+  } catch (error) {
+    console.log("CREATE CATEGORY API ERROR............", error)
+    toast.error(error?.response?.data?.message || error.message || "Failed to create Category")
+  }
+  toast.dismiss(toastId)
+  return result
 }

@@ -18,15 +18,26 @@ const Catalog = () => {
     const [categoryId, setCategoryId] = useState("");
 
     //Fetch all categories
-    useEffect(()=> {
-        const getCategories = async() => {
-            const res = await apiConnector("GET", categories.CATEGORIES_API);
-            const category_id = 
-            res?.data?.data?.filter((ct) => ct.name.split(" ").join("-").toLowerCase() === catalogName)[0]._id;
-            setCategoryId(category_id);
+    useEffect(() => {
+      const getCategories = async () => {
+        try {
+          const res = await apiConnector("GET", categories.CATEGORIES_API);
+          const category = res?.data?.data?.find(
+            (ct) =>
+              ct.name.replaceAll(" ", "-").toLowerCase() ===
+              catalogName.replaceAll(" ", "-").toLowerCase()
+          );
+          if (category) {
+            setCategoryId(category._id);
+          }
+        } catch (error) {
+          console.log("Error matching category:", error);
         }
+      };
+      if (catalogName) {
         getCategories();
-    },[catalogName]);
+      }
+    }, [catalogName]);
 
     useEffect(() => {
         const getCategoryDetails = async() => {

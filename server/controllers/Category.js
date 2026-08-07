@@ -1,5 +1,6 @@
 const { Mongoose } = require("mongoose");
 const Category = require("../models/Category");
+const Course = require("../models/Course");
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
@@ -70,34 +71,53 @@ exports.categoryPageDetails = async (req, res) => {
         .json({ success: false, message: "Category not found" });
     }
 
+    // Query Course model directly by category ID to catch courses linked via Course.category
+    const directCourses = await Course.find({ category: categoryId })
+      .populate("ratingAndReviews")
+      .populate("instructor")
+      .exec();
+
+    // Merge courses from both Category.courses array and Course.category references
+    const courseMap = new Map();
+    (selectedCategory.courses || []).forEach((c) => c && courseMap.set(c._id.toString(), c));
+    (directCourses || []).forEach((c) => c && courseMap.set(c._id.toString(), c));
+
+    selectedCategory = selectedCategory.toObject();
+    selectedCategory.courses = Array.from(courseMap.values());
+
     // Get courses for other categories
     const categoriesExceptSelected = await Category.find({
       _id: { $ne: categoryId },
     });
     let differentCategory = null;
     if (categoriesExceptSelected.length > 0) {
-      differentCategory = await Category.findOne(
-        categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
-          ._id,
-      )
+      const randomCategoryObj = categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)];
+      differentCategory = await Category.findById(randomCategoryObj._id)
         .populate({
           path: "courses",
           populate: { path: "instructor" },
         })
         .exec();
+
+      if (differentCategory) {
+        const diffDirectCourses = await Course.find({ category: differentCategory._id })
+          .populate("instructor")
+          .exec();
+        const diffMap = new Map();
+        (differentCategory.courses || []).forEach((c) => c && diffMap.set(c._id.toString(), c));
+        (diffDirectCourses || []).forEach((c) => c && diffMap.set(c._id.toString(), c));
+        differentCategory = differentCategory.toObject();
+        differentCategory.courses = Array.from(diffMap.values());
+      }
     }
 
     // Get top-selling courses across all categories
-    const allCategories = await Category.find()
-      .populate({
-        path: "courses",
-        populate: {
-          path: "instructor",
-        },
-      })
+    const allCourses = await Course.find()
+      .populate("instructor")
+      .populate("ratingAndReviews")
       .exec();
-    const allCourses = allCategories.flatMap((category) => category.courses);
-    const mostSellingCourses = allCourses
+
+    const mostSellingCourses = (allCourses || [])
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
       .slice(0, 10);
 

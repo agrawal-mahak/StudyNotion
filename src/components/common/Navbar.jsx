@@ -41,9 +41,7 @@ function Navbar() {
 
   return (
     <div
-      className={`flex h-14 items-center justify-center border-b-[1px] border-b-richblack-700 ${
-        location.pathname !== "/" ? "bg-richblack-800" : ""
-      } transition-all duration-200`}
+      className={`sticky top-0 z-[1000] flex h-16 items-center justify-center border-b border-richblack-700/80 bg-richblack-900/90 backdrop-blur-md transition-all duration-200 shadow-lg`}
     >
       <div className="flex w-11/12 max-w-maxContent items-center justify-between">
         {/* Logo */}
